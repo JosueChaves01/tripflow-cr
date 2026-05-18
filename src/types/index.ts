@@ -28,6 +28,10 @@ export interface Activity {
   category: string
   available: boolean
   images: string[]
+  included?: string[]
+  requirements?: string[]
+  lat?: number
+  lng?: number
   created_at: string
 }
 
@@ -49,7 +53,9 @@ export interface Itinerary {
 export interface Booking {
   id: string
   user_id: string
-  activity_id: string
+  activity_id?: string
+  hotel_id?: string
+  restaurant_id?: string
   itinerary_id?: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   date: string
@@ -67,5 +73,52 @@ export interface Provider {
   contact_email: string
   phone: string
   verified: boolean
+  created_at: string
+}
+
+export interface Review {
+  id: string
+  activity_id?: string
+  hotel_id?: string
+  restaurant_id?: string
+  user_id: string
+  rating: number
+  comment?: string
+  created_at: string
+}
+
+export interface Hotel {
+  id: string
+  provider_id: string
+  name: string
+  description: string
+  price_per_night: number
+  location: string
+  stars: number
+  category: string
+  available: boolean
+  images: string[]
+  amenities?: string[]
+  policies?: string[]
+  lat?: number
+  lng?: number
+  created_at: string
+}
+
+export interface Restaurant {
+  id: string
+  provider_id: string
+  name: string
+  description: string
+  price_range: string
+  location: string
+  cuisine: string
+  category: string
+  available: boolean
+  images: string[]
+  specialties?: string[]
+  schedule?: string[]
+  lat?: number
+  lng?: number
   created_at: string
 }

@@ -31,6 +31,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Language cookie persistence
+  const languageCookie = request.cookies.get('tf_language')
+  if (!languageCookie) {
+    supabaseResponse.cookies.set('tf_language', 'en', {
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+    })
+  }
+
   return supabaseResponse
 }
 

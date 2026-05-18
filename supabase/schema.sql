@@ -55,6 +55,10 @@ create table public.activities (
   category text,
   available boolean default true,
   images text[] default '{}',
+  included text[] default '{}',
+  requirements text[] default '{}',
+  lat numeric,
+  lng numeric,
   created_at timestamptz default now()
 );
 alter table public.activities enable row level security;
@@ -65,6 +69,23 @@ create policy "Providers manage own activities"
   using (provider_id in (
     select id from public.providers where user_id = auth.uid()
   ));
+
+-- ============================================================
+-- Reviews
+-- ============================================================
+create table public.reviews (
+  id uuid default uuid_generate_v4() primary key,
+  activity_id uuid references public.activities(id) on delete cascade not null,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  rating integer not null check (rating >= 1 and rating <= 5),
+  comment text,
+  created_at timestamptz default now()
+);
+alter table public.reviews enable row level security;
+create policy "Public can view reviews"
+  on public.reviews for select using (true);
+create policy "Users can manage own reviews"
+  on public.reviews for all using (auth.uid() = user_id);
 
 -- ============================================================
 -- Itineraries

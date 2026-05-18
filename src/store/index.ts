@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { UserProfile, TravelPreferences, Itinerary, Booking } from '@/types'
+import type { Language } from '@/i18n'
 
 /**
  * TripFlow global Zustand store.
@@ -27,6 +28,10 @@ interface TripFlowStore {
   setSelectedBookings: (bookings: Booking[]) => void
   addBooking: (booking: Booking) => void
   removeBooking: (bookingId: string) => void
+
+  /** owner: Agent-UI (i18n) */
+  language: Language
+  setLanguage: (lang: Language) => void
 }
 
 export const useTripFlowStore = create<TripFlowStore>((set) => ({
@@ -50,4 +55,8 @@ export const useTripFlowStore = create<TripFlowStore>((set) => ({
     set((state) => ({
       selectedBookings: state.selectedBookings.filter((b) => b.id !== bookingId),
     })),
+
+  // i18n slice
+  language: 'en' as Language,
+  setLanguage: (language) => set({ language }),
 }))
