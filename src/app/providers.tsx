@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 import { useTripFlowStore } from '@/store'
 import { I18nProvider } from '@/i18n'
+import { NotificationProvider } from '@/components/ui/NotificationProvider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [supabase] = useState(() => createClient())
@@ -54,5 +55,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [supabase, setUser])
 
-  return <I18nProvider>{children}</I18nProvider>
+  return (
+    <I18nProvider>
+      <NotificationProvider>
+        {children}
+      </NotificationProvider>
+    </I18nProvider>
+  )
 }

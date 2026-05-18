@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
 import { useI18n } from '@/i18n'
+import { useNotification } from '@/components/ui/NotificationProvider'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -16,6 +17,7 @@ function CheckoutForm({ total }: { total: number }) {
   const elements = useElements()
   const [loading, setLoading] = useState(false)
   const { t } = useI18n()
+  const { showAlert } = useNotification()
 
   const handleSubmit = async () => {
     if (!stripe || !elements) return
@@ -25,7 +27,7 @@ function CheckoutForm({ total }: { total: number }) {
       confirmParams: { return_url: `${window.location.origin}/dashboard?payment=success` },
     })
     setLoading(false)
-    if (error) alert(error.message)
+    if (error) await showAlert(error.message || 'Payment failed', 'Error de Pago')
   }
 
   return (
@@ -43,6 +45,7 @@ export default function CheckoutPage() {
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const { t } = useI18n()
+  const { showAlert } = useNotification()
 
   const total = selectedBookings.reduce((sum, b) => sum + b.total_price, 0)
 
@@ -58,7 +61,7 @@ export default function CheckoutPage() {
       })
       const json = await res.json()
       if (json.clientSecret) setClientSecret(json.clientSecret)
-      else alert(json.error ?? 'Payment setup failed')
+      else await showAlert(json.error ?? 'Payment setup failed', 'Error')
     } finally {
       setLoading(false)
     }

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { loginUser } from '@/features/auth/actions'
 import { useI18n } from '@/i18n'
+import { useNotification } from '@/components/ui/NotificationProvider'
 
 const schema = z.object({
   email: z.string().email(),
@@ -17,6 +18,7 @@ type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
   const { t } = useI18n()
+  const { showAlert } = useNotification()
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
@@ -26,7 +28,7 @@ export default function LoginPage() {
     form.set('email', data.email)
     form.set('password', data.password)
     const result = await loginUser(form as any)
-    if (result?.error) alert(result.error)
+    if (result?.error) await showAlert(result.error, 'Error')
   }
 
   return (

@@ -34,6 +34,9 @@ yarn-error.log*
 .env*.local
 .env.local
 
+# n8n workflows — contain sensitive credentials
+**/n8n-workflow*.json
+
 # vercel
 .vercel
 

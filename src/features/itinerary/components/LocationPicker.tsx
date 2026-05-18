@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
+import { MapPin } from 'lucide-react'
 
 interface GoogleMapsWindow extends Window {
   google: typeof google
@@ -162,8 +163,9 @@ export function LocationPicker({ value, onChange, className, apiKey }: LocationP
       )}
 
       {value?.address && (
-        <p className="text-sm text-slate-500">
-          📍 {value.address}
+        <p className="text-sm text-slate-500 flex items-center gap-1.5">
+          <MapPin size={14} className="text-slate-400 shrink-0" />
+          {value.address}
         </p>
       )}
     </div>

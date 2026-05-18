@@ -6,6 +6,7 @@ import { cancelBooking } from '@/features/bookings/actions'
 import { useI18n } from '@/i18n'
 import { type Booking } from '@/types'
 import { cn } from '@/lib/utils'
+import { useNotification } from '@/components/ui/NotificationProvider'
 
 interface BookingCardProps {
   booking: Booking & { activity?: any }
@@ -24,9 +25,10 @@ const statusVariant = (status: Booking['status']): 'success' | 'warning' | 'dang
 
 export function BookingCard({ booking, className }: BookingCardProps) {
   const { t } = useI18n()
+  const { showConfirm } = useNotification()
 
   const handleCancel = async () => {
-    if (!confirm(t('cancelThisBooking'))) return
+    if (!(await showConfirm(t('cancelThisBooking'), t('cancel')))) return
     await cancelBooking(booking.id)
     window.location.reload()
   }

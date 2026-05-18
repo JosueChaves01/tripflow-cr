@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { createActivity } from '@/features/providers/actions'
+import { useNotification } from '@/components/ui/NotificationProvider'
 
 const activitySchema = z.object({
   name: z.string().min(2),
@@ -22,6 +23,7 @@ const activitySchema = z.object({
 type ActivityForm = z.infer<typeof activitySchema>
 
 export default function ProviderDashboardPage() {
+  const { showAlert } = useNotification()
   const [activities, setActivities] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
   const { register, handleSubmit, reset, formState: { errors } } = useForm<ActivityForm>({
@@ -30,7 +32,7 @@ export default function ProviderDashboardPage() {
 
   const onSubmit = async (data: ActivityForm) => {
     const result = await createActivity({ ...data, images: [] })
-    if (result.error) alert(result.error)
+    if (result.error) await showAlert(result.error, 'Error')
     else {
       setActivities((prev) => [...prev, result.data])
       setShowForm(false)

@@ -24,13 +24,45 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid message format' }, { status: 400 })
     }
 
-    // 3. Forward to n8n webhook
+    // 3. Inject system prompt instructions to force the n8n agent to fetch real database IDs
+    const systemPrompt = {
+      role: 'system',
+      content: `Eres el Planificador de Viajes Experto de TripFlow Costa Rica.
+INSTRUCCIONES DE BÚSQUEDA Y ASOCIACIÓN DE BASE DE DATOS OBLIGATORIAS:
+1. NUNCA inventes identificadores, nombres ni detalles de actividades, hoteles (alojamiento) o restaurantes.
+2. Cada vez que sugieras o generes un itinerario en Costa Rica, DEBES usar tu herramienta SQL o Supabase para buscar en las tablas ('public.activities', 'public.hotels', 'public.restaurants') registros reales que coincidan.
+3. Para cada actividad, hotel y restaurante en el itinerario final dentro del bloque <PREFERENCES>...</PREFERENCES>:
+   - DEBES incluir obligatoriamente su UUID real de la base de datos (campo 'id') en la propiedad 'id'.
+   - Si no encuentras un registro idéntico, busca la opción real más cercana disponible y usa su 'id' real. No uses texto libre ni marcadores de posición para el ID.
+   - El itinerario guardado DEBE contener IDs físicos y reales para habilitar la reserva directa.`
+    }
+
+    const updatedMessages = [systemPrompt, ...messages]
+
+    // 4. Forward to n8n webhook
     // We send the entire chat history and inject the user_id so n8n can query Supabase on their behalf
     const payload = {
       user_id: user.id,
       email: user.email,
-      messages: messages,
+      messages: updatedMessages,
       preferences: preferences || null
+    }
+
+    // Helper function to extract and parse preferences from XML tags
+    const extractPreferences = (responseText: string) => {
+      let cleanResponse = responseText
+      let extractedPreferences = null
+
+      const match = responseText.match(/<PREFERENCES>([\s\S]*?)<\/PREFERENCES>/i)
+      if (match) {
+        try {
+          extractedPreferences = JSON.parse(match[1].trim())
+          cleanResponse = responseText.replace(match[0], '').trim()
+        } catch (e) {
+          console.error("Failed to parse preferences JSON from LLM output:", e)
+        }
+      }
+      return { cleanResponse, extractedPreferences }
     }
 
     // Check if a real n8n webhook is set (not the placeholder example)
@@ -52,33 +84,47 @@ export async function POST(req: Request) {
 
       const data = await response.json()
       
-      // We expect n8n to respond with an object that might include the agent's text response
-      // and optional action flags (like "itinerary_saved")
+      // If n8n didn't parse the XML internally, we parse it here as a fallback
+      if (data.response && !data.preferences) {
+        const { cleanResponse, extractedPreferences } = extractPreferences(data.response)
+        data.response = cleanResponse
+        if (extractedPreferences) {
+          data.preferences = extractedPreferences
+        }
+      }
+      
       return NextResponse.json(data)
     } else {
       // MOCK RESPONSE for UI development when n8n is not yet connected
-      // Simulate network delay
       await new Promise(r => setTimeout(r, 1500))
       
-      if (preferences) {
+      const lastMessage = messages[messages.length - 1].content.toLowerCase()
+      
+      // Mock LLM detecting a change in preferences via text
+      if (lastMessage.includes('tamarindo')) {
         return NextResponse.json({
-          response: `¡Perfecto! Veo que has configurado tus preferencias para viajar a ${preferences.destination} por ${preferences.duration} días con ${preferences.travelers} personas. Tu presupuesto es ${preferences.budget === 'budget' ? 'Económico' : preferences.budget === 'moderate' ? 'Moderado' : 'Lujo'} y deseas incluir ${preferences.services.join(', ')}.\n\nHe buscado opciones de hoteles de lujo en la base de datos de ${preferences.destination}. ¿Deseas que te muestre las mejores recomendaciones de alojamiento?`,
-          action: "chat"
+          response: "¡Excelente elección! Tamarindo es hermoso. He actualizado tu destino a Tamarindo.",
+          action: "chat",
+          preferences: { ...preferences, destination: "Tamarindo" }
         })
       }
 
-      const lastMessage = messages[messages.length - 1].content.toLowerCase()
-      
       if (lastMessage.includes('confirm') || lastMessage.includes('yes') || lastMessage.includes('listo')) {
-        // Mock successful generation
         return NextResponse.json({
           response: "¡Excelente! He guardado tu itinerario. Te redirigiré para que puedas verlo ahora mismo.",
           action: "itinerary_saved"
         })
       }
       
+      if (preferences) {
+        return NextResponse.json({
+          response: `¡Perfecto! Veo que has configurado tus preferencias para viajar a ${preferences.destination} por ${preferences.duration} días con ${preferences.travelers} personas. Tu presupuesto es ${preferences.budget === 'budget' ? 'Económico' : preferences.budget === 'moderate' ? 'Moderado' : 'Lujo'} y deseas incluir ${preferences.services.join(', ')}.\n\n¿Deseas que te muestre las mejores recomendaciones de alojamiento o tienes algún otro requerimiento especial?`,
+          action: "chat"
+        })
+      }
+
       return NextResponse.json({
-        response: "Entiendo. Para poder recomendarte el mejor itinerario, ¿podrías indicarme para cuántas personas es el viaje y cuál es su presupuesto aproximado (Bajo, Medio, Alto)?",
+        response: "Entiendo. Para poder recomendarte el mejor itinerario, ¿podrías indicarme para cuántas personas es el viaje y cuál es su presupuesto aproximado?",
         action: "chat"
       })
     }
@@ -87,3 +133,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message || 'Internal server error' }, { status: 500 })
   }
 }
+

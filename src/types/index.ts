@@ -122,3 +122,20 @@ export interface Restaurant {
   lng?: number
   created_at: string
 }
+
+export interface Car {
+  id: string
+  provider_id: string
+  make?: string
+  model?: string
+  year?: number
+  seats?: number
+  transmission?: string
+  price_per_day: number
+  location?: string
+  available: boolean
+  images: string[]
+  lat?: number
+  lng?: number
+  created_at: string
+}

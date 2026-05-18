@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { createUser } from '@/features/auth/actions'
 import { useI18n } from '@/i18n'
+import { useNotification } from '@/components/ui/NotificationProvider'
 
 const schema = z.object({
   full_name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -21,6 +22,7 @@ type FormData = z.infer<typeof schema>
 export default function RegisterPage() {
   const { t } = useI18n()
   const router = useRouter()
+  const { showAlert } = useNotification()
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
@@ -34,7 +36,7 @@ export default function RegisterPage() {
 
     const result = await createUser(form as any)
     if (result?.error) {
-      alert(result.error)
+      await showAlert(result.error, 'Error')
     }
   }
 
