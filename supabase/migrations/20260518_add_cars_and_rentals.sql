@@ -16,6 +16,7 @@ create table if not exists public.cars (
   transmission text,
   price_per_day numeric(10,2) not null,
   location text,
+  description text,
   available boolean default true,
   images text[] default '{}',
   lat numeric,

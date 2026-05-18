@@ -196,6 +196,7 @@ export const translations = {
 
     // Restaurants
     restaurants: 'Restaurants',
+    cars: 'Cars',
   },
   es: {
     // Navbar
@@ -392,6 +393,7 @@ export const translations = {
 
     // Restaurants
     restaurants: 'Restaurantes',
+    cars: 'Renta de Autos',
   },
 } as const
 

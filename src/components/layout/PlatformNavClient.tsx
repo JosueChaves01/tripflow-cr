@@ -17,6 +17,7 @@ export function PlatformNavClient({ profile, children }: PlatformNavClientProps)
     { label: t('dashboard'), href: '/dashboard' },
     { label: t('hotels'), href: '/hotels' },
     { label: t('restaurants'), href: '/restaurants' },
+    { label: t('cars'), href: '/cars' },
     { label: t('itineraries'), href: '/itinerary' },
   ]
 
