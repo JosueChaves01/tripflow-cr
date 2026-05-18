@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { LandingContent } from '@/components/landing/LandingContent'
-import { ChatPreview } from '@/components/landing/ChatPreview'
 import { UserProfile } from '@/types'
 
 export default async function Home() {
@@ -27,10 +26,6 @@ export default async function Home() {
   return (
     <>
       <LandingContent user={user} profile={profile} />
-      {/* ChatPreview remains static as it's a demo component */}
-      <section className="mx-auto max-w-4xl px-4 py-24 sm:px-6 lg:px-8 bg-slate-50">
-        <ChatPreview />
-      </section>
     </>
   )
 }

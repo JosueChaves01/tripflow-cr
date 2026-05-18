@@ -1,0 +1,274 @@
+{
+  "name": "TripFlow CR - AI Travel Itinerary Agent",
+  "nodes": [
+    {
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [100, 400],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tripflow-itinerary-agent",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "webhookId": "tripflow-itinerary-agent"
+    },
+    {
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [320, 400],
+      "parameters": {
+        "jsCode": "const body = $input.item.json;\nconst user_id = body.user_id;\nconst messages = body.messages;\nconst preferences = body.preferences || null;\n\nif (!user_id || typeof user_id !== 'string') throw new Error('Missing user_id');\nif (!messages || !Array.isArray(messages)) throw new Error('Missing messages');\n\nconst lastMessage = messages[messages.length - 1]?.content || '';\n\nreturn { json: { user_id, messages, lastMessage, preferences, timestamp: new Date().toISOString() } };"
+      }
+    },
+    {
+      "id": "postgres-memory",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.1,
+      "position": [600, 550],
+      "parameters": {
+        "tableName": "n8n_chat_histories",
+        "sessionId": "={{ $json.user_id }}"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "YOUR_POSTGRES_CREDENTIAL_ID",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "id": "anthropic-model",
+      "name": "Anthropic Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1,
+      "position": [600, 700],
+      "parameters": {
+        "model": "claude-3-5-sonnet-20240620",
+        "maxTokens": 1024
+      },
+      "credentials": {
+        "anthropicApi": {
+          "id": "YOUR_ANTHROPIC_CREDENTIAL_ID",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "id": "tool-hotels",
+      "name": "Search Hotels",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [800, 600],
+      "parameters": {
+        "name": "search_hotels",
+        "description": "Searches for available hotels. Call this when the user needs accommodation.",
+        "toolDescription": "Searches for available hotels. Call this when the user needs accommodation.",
+        "url": "https://ccospiksyvpryxkexhxs.supabase.co/rest/v1/hotels?available=eq.true&select=*",
+        "method": "GET",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-activities",
+      "name": "Search Activities",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [950, 600],
+      "parameters": {
+        "name": "search_activities",
+        "description": "Searches for available tours and activities.",
+        "toolDescription": "Searches for available tours and activities.",
+        "url": "https://ccospiksyvpryxkexhxs.supabase.co/rest/v1/activities?available=eq.true&select=*",
+        "method": "GET",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-restaurants",
+      "name": "Search Restaurants",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1100, 600],
+      "parameters": {
+        "name": "search_restaurants",
+        "description": "Searches for available restaurants.",
+        "toolDescription": "Searches for available restaurants.",
+        "url": "https://ccospiksyvpryxkexhxs.supabase.co/rest/v1/restaurants?available=eq.true&select=*",
+        "method": "GET",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tool-save",
+      "name": "Save Itinerary",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [1250, 600],
+      "parameters": {
+        "name": "save_itinerary",
+        "description": "Saves the final itinerary to the database once the user confirms. Requires user_id, preferences, days (JSON array), and total_cost.",
+        "toolDescription": "Saves the final itinerary to the database once the user confirms. Requires user_id, preferences, days (JSON array), and total_cost.",
+        "url": "https://ccospiksyvpryxkexhxs.supabase.co/rest/v1/itineraries",
+        "method": "POST",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "user_id", "value": "={{ $('Validate Input').item.json.user_id }}" },
+            { "name": "status", "value": "confirmed" },
+            { "name": "preferences", "value": "={{ $parameter.preferences }}" },
+            { "name": "days", "value": "={{ $parameter.days }}" },
+            { "name": "total_cost", "value": "={{ $parameter.total_cost }}" }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNjb3NwaWtzeXZwcnl4a2V4aHhzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTA2Mjc2NywiZXhwIjoyMDk0NjM4NzY3fQ.u6SxR3py1Tdm8epN1-LvTj2P-AWT30qQQqCvHiJC3Jc"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "llm-agent",
+      "name": "TripFlow AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.4,
+      "position": [600, 400],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.lastMessage }}",
+        "options": {
+          "systemMessage": "=You are the TripFlow Costa Rica Travel Expert. Your goal is to design a personalized travel itinerary for the user.\n\nPre-chat User Preferences:\n- Destination: {{ $('Validate Input').item.json.preferences?.destination || 'Not specified' }}\n- Duration: {{ $('Validate Input').item.json.preferences?.duration || 'Not specified' }} days\n- Travelers: {{ $('Validate Input').item.json.preferences?.travelers || 'Not specified' }} people\n- Vibe/Style: {{ $('Validate Input').item.json.preferences?.vibe || 'Not specified' }}\n- Budget: {{ $('Validate Input').item.json.preferences?.budget || 'Not specified' }}\n- Services Needed: {{ $('Validate Input').item.json.preferences?.services?.join(', ') || 'Not specified' }}\n\nINSTRUCTIONS:\n1. If pre-chat preferences above are specified (not 'Not specified'), DO NOT ask the user for those details again! Confirm them briefly in your greeting and immediately start searching for hotels, activities, or restaurants in that destination (based on what services they asked for) using the search tools. Skip the discovery phase for those fields.\n2. If preferences are NOT specified, ask the user about their trip (dates, group size, budget, destination, etc.) in a conversational way.\n3. **Search**: Use the search_hotels, search_activities, and search_restaurants tools to find real options from the database. NEVER invent names.\n4. **Recommend**: Show 2-3 real options based on tool results.\n5. **Finalize**: When they approve, use the save_itinerary tool.\n\nIMPORTANT:\n- After saving, say EXACTLY: \"Your itinerary has been saved! You can view it now.\"\n- Your final response MUST include {\"action\": \"itinerary_saved\"} in your text when itinerary is saved."
+        }
+      }
+    },
+    {
+      "id": "parse-response",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 400],
+      "parameters": {
+        "jsCode": "const agentOutput = $input.item.json;\nlet responseText = agentOutput.output || agentOutput.text || JSON.stringify(agentOutput);\nlet action = 'chat';\n\nif (responseText.toLowerCase().includes('itinerary has been saved') || responseText.toLowerCase().includes('itinerario ha sido guardado')) {\n  action = 'itinerary_saved';\n}\n\nreturn { json: { response: responseText, action, user_id: $('Validate Input').item.json.user_id } };"
+      }
+    },
+    {
+      "id": "respond-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 400],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [ { "node": "Validate Input", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [ { "node": "TripFlow AI Agent", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_languageModel", "index": 0 } ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_memory", "index": 0 } ]
+      ]
+    },
+    "Search Hotels": {
+      "ai_tool": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_tool", "index": 0 } ]
+      ]
+    },
+    "Search Activities": {
+      "ai_tool": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_tool", "index": 0 } ]
+      ]
+    },
+    "Search Restaurants": {
+      "ai_tool": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_tool", "index": 0 } ]
+      ]
+    },
+    "Save Itinerary": {
+      "ai_tool": [
+        [ { "node": "TripFlow AI Agent", "type": "ai_tool", "index": 0 } ]
+      ]
+    },
+    "TripFlow AI Agent": {
+      "main": [
+        [ { "node": "Parse Response", "type": "main", "index": 0 } ]
+      ]
+    },
+    "Parse Response": {
+      "main": [
+        [ { "node": "Respond to Webhook", "type": "main", "index": 0 } ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "tags": ["tripflow", "ai-agent", "itinerary"]
+}

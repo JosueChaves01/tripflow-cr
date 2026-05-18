@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { MapPin, CalendarDays, ShieldCheck, Sparkles, ArrowRight } from 'lucide-react'
 import { UserMenu } from '@/components/layout/UserMenu'
 import { LanguageSwitcher } from '@/components/layout/LanguageSwitcher'
+import { ChatPreview } from '@/components/landing/ChatPreview'
 import { useI18n } from '@/i18n'
 import type { UserProfile } from '@/types'
 
@@ -88,6 +89,11 @@ export function LandingContent({ user, profile }: LandingContentProps) {
             </div>
           </div>
         </section>
+
+        {/* ChatPreview */}
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pb-24 relative z-10">
+          <ChatPreview />
+        </div>
 
         {/* Features Section */}
         <section className="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
