@@ -4,7 +4,7 @@ import OpenAI from 'openai'
 // Token Plan keys start with sk-cp-
 // Endpoint: https://api.minimax.io/v1
 export const minimax = new OpenAI({
-  apiKey: process.env.MINIMAX_API_KEY!,
+  apiKey: process.env.MINIMAX_API_KEY || 'missing_key_for_build',
   baseURL: process.env.MINIMAX_BASE_URL ?? 'https://api.minimax.io/v1',
 })
 

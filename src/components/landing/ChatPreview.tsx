@@ -167,7 +167,7 @@ export function ChatPreview() {
   return (
     <div className="flex flex-col gap-6" key={key}>
       {/* Header */}
-      <div className="text-center bg-slate-50 rounded-2xl py-8 px-4">
+      <div className="text-center py-8 px-4">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600 text-white text-sm font-medium mb-4">
           <Sparkles size={16} />
           <span>{t('tripflowAIAssistant')}</span>
@@ -261,7 +261,7 @@ export function ChatPreview() {
                   'max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed transition-all duration-300',
                   message.isUser
                     ? 'bg-slate-900 text-white rounded-br-md'
-                    : 'bg-slate-100 text-slate-800 rounded-bl-md',
+                    : 'bg-white text-slate-800 rounded-bl-md border border-slate-200',
                   message.status === 'pending' && 'opacity-0 translate-y-2',
                   message.status === 'typing' && 'opacity-100 translate-y-0',
                   message.status === 'complete' && 'opacity-100 translate-y-0'
