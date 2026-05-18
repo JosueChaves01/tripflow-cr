@@ -25,7 +25,7 @@
 import { createClient } from '@/lib/supabase/client'   // browser components
 import { createClient } from '@/lib/supabase/server'   // server components / actions
 import { stripe } from '@/lib/stripe/client'
-import { openai } from '@/lib/openai/client'
+import { minimax, MINIMAX_MODEL, MINIMAX_DEFAULTS } from '@/lib/minimax/client'
 import { cn } from '@/lib/utils'
 
 // ❌ Wrong — NEVER do this
@@ -33,6 +33,12 @@ import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import OpenAI from 'openai'
 ```
+
+**MiniMax M2.7 rules:**
+- NEVER instantiate MiniMax directly — import `minimax` from `@/lib/minimax/client`
+- ALWAYS use `MINIMAX_MODEL` and `MINIMAX_DEFAULTS` from that file
+- Never hardcode model names, temperature, or top_p values in feature code
+- Token Plan API keys start with `sk-cp-`
 
 ---
 
