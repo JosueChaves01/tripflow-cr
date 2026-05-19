@@ -7,6 +7,7 @@ import { MapPin, Sparkles, User, Send, Loader2, Trash2 } from 'lucide-react'
 import { useI18n } from '@/i18n'
 import { Button } from '@/components/ui/Button'
 import { PreChatData } from './PreChatPreferences'
+import { MarkdownRenderer } from '@/components/ui/MarkdownRenderer'
 
 interface ChatMessage {
   id: string
@@ -214,16 +215,19 @@ export function ItineraryChat({
               </div>
             )}
 
-            <div
-              className={cn(
-                'max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap text-left',
-                message.role === 'user'
-                  ? 'bg-slate-900 text-white rounded-br-md'
-                  : 'bg-white text-slate-800 rounded-bl-md border border-slate-200 shadow-sm'
-              )}
-            >
-              {message.content}
-            </div>
+            {message.role === 'user' ? (
+              <div
+                className="max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap text-left bg-slate-900 text-white rounded-br-md"
+              >
+                {message.content}
+              </div>
+            ) : (
+              <div
+                className="max-w-[85%] px-5 py-4 rounded-2xl text-sm leading-relaxed text-left bg-white text-slate-800 rounded-bl-md border border-slate-200 shadow-sm"
+              >
+                <MarkdownRenderer content={message.content} />
+              </div>
+            )}
 
             {message.role === 'user' && (
               <div className="flex-shrink-0 h-8 w-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center">

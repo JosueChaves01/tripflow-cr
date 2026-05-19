@@ -53,13 +53,15 @@ INSTRUCCIONES DE BÚSQUEDA Y ASOCIACIÓN DE BASE DE DATOS OBLIGATORIAS:
       let cleanResponse = responseText
       let extractedPreferences = null
 
-      const match = responseText.match(/<PREFERENCES>([\s\S]*?)<\/PREFERENCES>/i)
+      const match = responseText.match(/<(?:SAVE_)?PREFERENCES>([\s\S]*?)<\/(?:SAVE_)?PREFERENCES>/i)
       if (match) {
         try {
           extractedPreferences = JSON.parse(match[1].trim())
           cleanResponse = responseText.replace(match[0], '').trim()
         } catch (e) {
           console.error("Failed to parse preferences JSON from LLM output:", e)
+          // Even if parsing fails, we should still strip the tag so it doesn't show in the UI
+          cleanResponse = responseText.replace(match[0], '').trim()
         }
       }
       return { cleanResponse, extractedPreferences }

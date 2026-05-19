@@ -41,30 +41,3 @@ export async function getCarDetails(id: string) {
   if (error) return null
   return data
 }
-
-export async function createCarRental(input: {
-  car_id: string
-  start_date: string
-  end_date: string
-  total_price: number
-}) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Unauthorized' }
-
-  const { data, error } = await supabase
-    .from('car_rentals')
-    .insert({
-      car_id: input.car_id,
-      user_id: user.id,
-      start_date: input.start_date,
-      end_date: input.end_date,
-      total_price: input.total_price,
-      status: 'pending',
-    })
-    .select()
-    .single()
-
-  if (error) return { error: error.message }
-  return { data }
-}
